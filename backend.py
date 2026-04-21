@@ -38,18 +38,25 @@ class task_manager():
         cursor.execute("""
             INSERT INTO TASK(task_name, task_type, frequency) VALUES (?,?,?)
         """,(task_name, task_type, frequency))
+        new_id = cursor.lastrowid
+        self.move_task_to_current_task(cursor, new_id, task_name, task_type, frequency)
         connection.commit()
         connection.close()
 
-    def view_task(self):
+    def select_task(self,task_type):
+        current_data = []
         connection = sqlite3.connect(database="taskmanager.db")
         cursor = connection.cursor()
         res = cursor.execute("""
-            SELECT * FROM TASK
-        """)
-        print(res.fetchall())
+            SELECT * FROM TASK WHERE 
+                             task_type = ?
+        """, (task_type,))
+        for row in res:
+            current_data.append(row)
+            
         connection.commit()
         connection.close()
+        return current_data
 
     def edit_task(self,id, task_name, task_type, frequency):
         connection = sqlite3.connect(database="taskmanager.db")
@@ -79,12 +86,42 @@ class task_manager():
         connection.commit()
         connection.close()
     
-    def update_current_task(self):
+    def update_current_task(self,task_type):
+        connection = sqlite3.connect(database="taskmanager.db")
+        cursor = connection.cursor()
+        data = self.select_task(task_type)
+
+        cursor.execute("""
+            DELETE FROM CURRENT_TASK 
+                    WHERE 
+                       task_type = ?
+                       
+        """,(task_type,))
+
+        for row in data:
+            ids = row[0]
+            task_name = row[1]
+            task_types = row[2]
+            frequency = row[3]
+            print(f"ID : {ids}, task_name : {task_name}, task_type : {task_types}, frequency : {frequency}")
+            self.move_task_to_current_task(cursor,ids,task_name,task_types, frequency)
+            
+        connection.commit()
+        connection.close()
+
+    def move_task_to_current_task(self,cursor,id,task_name, task_type, frequency):
+        cursor.execute("""
+                INSERT INTO CURRENT_TASK(id,task_name, task_type, frequency) VALUES (?,?,?,?)
+            """,(id,task_name, task_type, frequency))
+    
+    def task_logging(self):
         pass
 
+        
 
 asu = task_manager()
-asu.view_task()
+asu.add_task("eek", "daily", 3)
+# asu.update_current_task("monthly")
 
 
 
