@@ -131,7 +131,7 @@ class task_manager():
             task_name = row[1]
             task_types = row[2]
             frequency = row[3]
-            print(f"ID : {ids}, task_name : {task_name}, task_type : {task_types}, frequency : {frequency}")
+            print(f"moving task : [ ID : {ids}, task_name : {task_name}, task_type : {task_types}, frequency : {frequency} ]")
             self.move_task_to_current_task(cursor,ids,task_name,task_types, frequency)
             
         connection.commit()
@@ -147,14 +147,23 @@ class task_manager():
         
     def timing_update(self):
         today = datetime.now()
-        print(today.day, today.weekday())
-        if today.day == 1:
-            self.update_current_task('monthly')
+        print("date : ", today.day)
 
-        if today.weekday() == 2:
-            self.update_current_task('weekly')
-
+        print("debug : UPDATING DAILY TASK...")
         self.update_current_task('daily')
+        print("\n")
+        
+        if today.weekday() == 5:
+            print("debug : UPDATING WEEKLY TASK...")
+            self.update_current_task('weekly')
+            print("\n")
+            
+        if today.day == 25:
+            print("debug : UPDATING MONTHLY TASK...")
+            self.update_current_task('monthly')
+            print("\n")
+
+
 
 
     
@@ -166,9 +175,9 @@ class task_manager():
 
         
 
-asu = task_manager()
-asu.delete_task(8)
-# asu.update_current_task("monthly")
+# asu = task_manager()
+# asu.delete_task(8)
+# # asu.update_current_task("monthly")
 
 
 
