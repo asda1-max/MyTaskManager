@@ -9,17 +9,19 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
+task = None
+
 @scheduler.task('cron', id='update_task', hour = 15, minute = 6 )
 def update_task_begin():
-    task = task_manager()
+    
     task.timing_update()
 
 @app.route('/')
 def index():
-    task = task_manager()
-    raw_task_list_daily = task.select_task(task_type='daily')
-    raw_task_list_weekly = task.select_task(task_type='weekly')
-    raw_task_list_monthly = task.select_task(task_type='monthly')
+    
+    raw_task_list_daily = task.select_current_task(task_type='daily')
+    raw_task_list_weekly = task.select_current_task(task_type='weekly')
+    raw_task_list_monthly = task.select_current_task(task_type='monthly')
     task_list_daily = translate_raw_data(raw_task_list_daily)
     task_list_weekly = translate_raw_data(raw_task_list_weekly)
     task_list_monthly = translate_raw_data(raw_task_list_monthly)
@@ -30,6 +32,7 @@ def index():
 @app.route('/finish_a_task/<int:id_task>', methods=['POST'])
 def finish_a_task_func(id_task):
     print(f"Selesaikan task dengan id : {id_task}")
+    task.check_task_completion(id_task)
     return redirect('/')
 
 def translate_raw_data(raw_task_list):
@@ -50,6 +53,7 @@ def translate_raw_data(raw_task_list):
 
 
 if __name__ == "__main__":
+    task = task_manager()
     today = datetime.now()
     print(today.day, today.time())
     app.run(debug=True, use_reloader=False, host="0.0.0.0")

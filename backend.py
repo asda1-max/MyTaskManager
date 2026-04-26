@@ -72,6 +72,24 @@ class task_manager():
         connection.commit()
         connection.close()
         return current_data
+    
+    def select_current_task(self,task_type):
+        """
+        selecting task based on task type ('daily', 'weekly', 'monthly')
+        """
+        current_data = []
+        connection = sqlite3.connect(database="taskmanager.db")
+        cursor = connection.cursor()
+        res = cursor.execute("""
+            SELECT * FROM CURRENT_TASK WHERE 
+                             task_type = ?
+        """, (task_type,))
+        for row in res:
+            current_data.append(row)
+            
+        connection.commit()
+        connection.close()
+        return current_data
 
     def edit_task(self,id, task_name, task_type, frequency):
         """
@@ -163,6 +181,44 @@ class task_manager():
             self.update_current_task('monthly')
             print("\n")
 
+    def check_task_completion(self, id):
+        current_data = []
+        connection = sqlite3.connect(database="taskmanager.db")
+        cursor = connection.cursor()
+        res = cursor.execute("""
+            SELECT frequency FROM CURRENT_TASK 
+                        WHERE 
+                             id = ?
+        """, (id,))
+        data_selected_frequency = res.fetchone()
+        print(f"frquency remaining : {data_selected_frequency[0]}")
+        connection.commit()
+        if data_selected_frequency[0] - 1 == 0:
+            print("jatah task habis")
+            cursor.execute("""
+            DELETE FROM CURRENT_TASK 
+                    WHERE 
+                       id = ?         
+            """,(id,))
+        else:
+            print(f"dikurangi 1 jadi : {data_selected_frequency[0]-1}")
+            cursor.execute("""
+            UPDATE CURRENT_TASK 
+                    SET
+                       frequency = ?
+                    WHERE
+                       id = ?
+                       
+        """,(data_selected_frequency[0]-1,id))
+
+        connection.commit()
+        connection.close()
+        return current_data
+
+    def reset_all_current_task(self):
+        self.update_current_task('daily')
+        self.update_current_task('weekly')
+        self.update_current_task('monthly')
 
 
 
@@ -176,18 +232,8 @@ class task_manager():
         
 
 asu = task_manager()
-# print(asu.add_task('olahraga', 'daily', 1))
-# asu.add_task('Read book', 'daily', 1)
-# asu.add_task('Meditate', 'daily', 1)
-# asu.add_task('Exercise', 'daily', 1)
-# asu.add_task('Code practice', 'daily', 1)
-# asu.add_task('Drink water', 'daily', 1)
-# asu.add_task('Grocery shopping', 'weekly', 1)
-# asu.add_task('Laundry', 'weekly', 1)
-# asu.add_task('Team meeting', 'weekly', 1)
-# asu.add_task('Car maintenance', 'monthly', 1)
-# asu.add_task('Bill payment', 'monthly', 1)
-# asu.update_current_task("monthly")
+# asu.add_task("coli", "daily", 4)
+# asu.reset_all_current_task()
 
 
 
