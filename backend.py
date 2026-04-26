@@ -175,9 +175,19 @@ class task_manager():
 
         
 
-# asu = task_manager()
-# asu.delete_task(8)
-# # asu.update_current_task("monthly")
+asu = task_manager()
+# print(asu.add_task('olahraga', 'daily', 1))
+# asu.add_task('Read book', 'daily', 1)
+# asu.add_task('Meditate', 'daily', 1)
+# asu.add_task('Exercise', 'daily', 1)
+# asu.add_task('Code practice', 'daily', 1)
+# asu.add_task('Drink water', 'daily', 1)
+# asu.add_task('Grocery shopping', 'weekly', 1)
+# asu.add_task('Laundry', 'weekly', 1)
+# asu.add_task('Team meeting', 'weekly', 1)
+# asu.add_task('Car maintenance', 'monthly', 1)
+# asu.add_task('Bill payment', 'monthly', 1)
+# asu.update_current_task("monthly")
 
 
 
