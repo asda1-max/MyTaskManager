@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 from flask_apscheduler import APScheduler
 from backend import task_manager
 from datetime import datetime
@@ -27,6 +27,11 @@ def index():
 
     return render_template('index.html', task_list_daily = task_list_daily, task_list_weekly = task_list_weekly, task_list_monthly = task_list_monthly)
 
+@app.route('/finish_a_task/<int:id_task>', methods=['POST'])
+def finish_a_task_func(id_task):
+    print(f"Selesaikan task dengan id : {id_task}")
+    return redirect('/')
+
 def translate_raw_data(raw_task_list):
     task_list = []
     for raw_task in raw_task_list:
@@ -47,7 +52,7 @@ def translate_raw_data(raw_task_list):
 if __name__ == "__main__":
     today = datetime.now()
     print(today.day, today.time())
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=False, host="0.0.0.0")
 
     
 

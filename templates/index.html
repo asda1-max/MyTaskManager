@@ -2,13 +2,14 @@
 
 {% block content %}
 
-<div class="gap-1 flex items-center"> 
-<div class="flex-auto bg-black mt-10 mx-4 p-10 rounded-2xl">
+<div class="gap-1 flex-auto items-center"> 
+<div class="bg-black mt-10 mx-4 p-5 rounded-2xl">
   <div class="text-white">
-    <p class="text-3xl mb-5 font-black">
+    <p class="text-4xl mb-5 font-black">
       MyTaskManager
     </p>
-    <p>
+    <hr>
+    <p class="mt-5">
       Welcome to MyTaskManager app, place where you can manage your daily habbits, routines, and tasks.
     </p>
   </div>
@@ -16,58 +17,88 @@
 </div>
 
 <div class="gap-1 flex items-center"> 
-<div class="flex-auto bg-black mt-20 mx-4 p-10 rounded-2xl">
+<div class="flex-auto bg-black mt-10 mx-4 p-5 rounded-2xl">
   <div class="text-white">
-    <p class="text-3xl mb-5 font-black">
+    <p class="text-4xl mb-5 font-black">
+      Your Available Task
+    </p>
+    <hr>
+    <p class="text-3xl mb-5 font-black mt-5">
       Daily Task
     </p>
     
     {% for task in task_list_daily %}
-    <div class="mb-2 p-3">
-      <p>
-        Nama Task : {{ task.task_name }}
-      </p>
-      <p>
-        Jenis Task : {{ task.task_type }}
-      </p>
-      <p>
-        Frequency : {{ task.frequency }}
-      </p>
+
+    <div class="mb-2 p-3 flex justify-between items-center">
+      <div>
+
+        <p>
+          Nama Task : {{ task.task_name }}
+        </p>
+        <p>
+          Jenis Task : {{ task.task_type }}
+        </p>
+        <p>
+          Frequency : {{ task.frequency }}
+        </p>
+      </div>
+      <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+        Finish
+      </button>
     </div>
+  <hr class="h-px my-8 bg-neutral-50 border-0">
       {% endfor %}
     <p class="text-3xl mb-5 font-black mt-5">
       Weekly Task
     </p>
-    {% for task in task_list_weekly %}
-    <div class="mb-5 p-3">
-      <p>
-        Nama Task : {{ task.task_name }}
-      </p>
-      <p>
-        Jenis Task : {{ task.task_type }}
-      </p>
-      <p>
-        Frequency : {{ task.frequency }}
-      </p>
-    </div>
-    {% endfor %}
+     {% for task in task_list_weekly %}
+
+    <div class="mb-2 p-3 flex justify-between items-center">
+      <div>
+
+        <p>
+          Nama Task : {{ task.task_name }}
+        </p>
+        <p>
+          Jenis Task : {{ task.task_type }}
+        </p>
+        <p>
+          Frequency : {{ task.frequency }}
+        </p>
+      </div>
+      <form action="/finish_a_task/{{ task.id }}" method="POST">
+        
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+          Finish (ID : {{ task.id }})
+        </button>
+      </div>
+    </form>
+  <hr class="h-px my-8 bg-neutral-50 border-0">
+      {% endfor %}
     <p class="text-3xl mb-5 font-black mt-5">
       Monthly Task
     </p>
-    {% for task in task_list_monthly %}
-    <div class="mb-5 p-3">
+ {% for task in task_list_monthly %}
 
-      <p>
-        Nama Task : {{ task.task_name }}
-      </p>
-      <p>
-        Jenis Task : {{ task.task_type }}
-      </p>
-      <p>
-        Frequency : {{ task.frequency }}
-      </p>
+    <div class="mb-2 p-3 flex justify-between items-center">
+      <div>
+
+        <p>
+          Nama Task : {{ task.task_name }}
+        </p>
+        <p>
+          Jenis Task : {{ task.task_type }}
+        </p>
+        <p>
+          Frequency : {{ task.frequency }}
+        </p>
+      </div>
+      <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
+        Finish
+      </button>
     </div>
-    {% endfor %}
+  <hr class="h-px my-8 bg-neutral-50 border-0">
+      {% endfor %}
   </div>
 </div>
 </div>

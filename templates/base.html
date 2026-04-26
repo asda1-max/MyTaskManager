@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <title>My Task Manager</title>
-</head>
-<body>
-    
+  </head>
+  <body>
+  
+    <div class="bg-linear-to-b from-gray-200 to-gray-900">
     <!-- Include this script tag or install `@tailwindplus/elements` via npm: -->
 <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script> -->
 <nav class="relative bg-black after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-white/10">
@@ -53,9 +54,11 @@
   </el-disclosure>
 </nav>
 
-    {% block content %}
-    {% endblock %}
 
+  {% block content %}
+  {% endblock %}
+  
+</div>
    
 </body>
 </html>
