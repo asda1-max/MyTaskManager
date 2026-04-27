@@ -30,22 +30,24 @@
     {% for task in task_list_daily %}
 
     <div class="mb-2 p-3 flex justify-between items-center">
-      <div>
+      <div class="flex-1 mr-5 gap-2">
 
-        <p>
+        <p class="mb-5">
           Nama Task : {{ task.task_name }}
         </p>
-        <p>
-          Jenis Task : {{ task.task_type }}
-        </p>
-        <p>
+        <div class="bg-violet-950 rounded-md opacity-95 m-auto p-5">
+          <p>
+            {{ task.task_description }}
+          </p>
+        </div>
+        <p class="mt-5">
           Frequency : {{ task.frequency }}
         </p>
       </div>
       <form action="/finish_a_task/{{ task.id }}" method="post">
         
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
-          Finish (ID : {{ task.id }})
+          Finish 
         </button>
       </form>
     </div>
@@ -68,11 +70,12 @@
         <p>
           Frequency : {{ task.frequency }}
         </p>
+
       </div>
       <form action="/finish_a_task/{{ task.id }}" method="post">
         
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
-          Finish (ID : {{ task.id }})
+          Finish 
         </button>
       </form>
     </div>
@@ -99,7 +102,7 @@
       <form action="/finish_a_task/{{ task.id }}" method="post">
         
         <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
-          Finish (ID : {{ task.id }})
+          Finish 
         </button>
       </form>
     </div>

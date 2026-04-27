@@ -37,17 +37,19 @@ def finish_a_task_func(id_task):
 
 def translate_raw_data(raw_task_list):
     task_list = []
+    # print(f"processing : {task_list} \n\n")
     for raw_task in raw_task_list:
-        ids, task_name, task_type, frequency = raw_task
+        ids, task_name,task_description, task_type, frequency = raw_task
         task_list.append(
             {
                 "id" : ids,
                 "task_name" : task_name,
+                "task_description" : task_description,
                 "task_type" : task_type,
                 "frequency" : frequency
             }
         )
-    print("data didapat : ", task_list)
+    print("data didapat : ", task_list, "\n\n")
     return task_list
 
 
