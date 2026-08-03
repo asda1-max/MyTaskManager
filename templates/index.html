@@ -1,115 +1,214 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard - MyTaskManager{% endblock %}
+
+{% set input_class = "w-full rounded-lg border border-white/10 bg-gray-800 px-3 py-2 text-sm outline-none placeholder-gray-500 focus:border-blue-500" %}
+{% set select_class = "w-full rounded-lg border border-white/10 bg-gray-800 px-3 py-2 text-sm outline-none focus:border-blue-500" %}
+{% set btn_class = "rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-500" %}
+
+{% macro render_task_form(action, task, task_type, submit_text) %}
+<form method="post" action="{{ action }}" class="grid gap-3">
+  <input type="hidden" name="task_type" value="{{ task_type }}">
+  <input name="task_name" required placeholder="Nama task" value="{{ task.task_name if task else '' }}" class="{{ input_class }}">
+  <textarea name="task_description" rows="2" placeholder="Deskripsi (opsional)" class="{{ input_class }}">{{ task.task_description if task else '' }}</textarea>
+  <div class="grid grid-cols-2 gap-3">
+    <label class="flex flex-col text-sm text-gray-400">
+      Frekuensi
+      <input type="number" name="frequency" min="1" value="{{ task.frequency if task else 1 }}" class="{{ input_class }} mt-1">
+    </label>
+    <label class="flex flex-col text-sm text-gray-400">
+      Prioritas
+      <select name="priority" class="{{ select_class }} mt-1">
+        <option value="0" {% if task and task.priority == 0 %}selected{% endif %}>Normal</option>
+        <option value="1" {% if task and task.priority == 1 %}selected{% endif %}>Sedang</option>
+        <option value="2" {% if task and task.priority == 2 %}selected{% endif %}>Tinggi</option>
+        <option value="3" {% if task and task.priority == 3 %}selected{% endif %}>Urgent</option>
+      </select>
+    </label>
+  </div>
+  <div class="grid grid-cols-2 gap-3">
+    <label class="flex flex-col text-sm text-gray-400">
+      Deadline
+      <input type="date" name="deadline" value="{{ task.deadline if task and task.deadline else '' }}" class="{{ input_class }} mt-1">
+    </label>
+    <label class="flex flex-col text-sm text-gray-400">
+      Tags (pisah koma)
+      <input type="text" name="tags" placeholder="mis. kerja, olahraga" value="{{ task.tags if task and task.tags else '' }}" class="{{ input_class }} mt-1">
+    </label>
+  </div>
+  <button class="{{ btn_class }}">{{ submit_text }}</button>
+</form>
+{% endmacro %}
+
+{% macro render_section(title, tasks, task_type, accent) %}
+<section class="rounded-2xl bg-gray-800 p-5 shadow-lg">
+  <div class="mb-4 flex items-center justify-between">
+    <h2 class="text-2xl font-black">{{ title }}</h2>
+    <span class="rounded-full {{ accent.badge }} px-3 py-1 text-sm font-bold">{{ tasks|length }} aktif</span>
+  </div>
+
+  <details class="mb-4 rounded-xl bg-gray-900/60 p-4">
+    <summary class="cursor-pointer text-sm font-bold {{ accent.summary }}">+ Tambah {{ title }}</summary>
+    <div class="mt-3">
+      {{ render_task_form(url_for('add_task_func'), None, task_type, "Simpan Task") }}
+    </div>
+  </details>
+
+  {% for t in tasks %}
+  <div class="mb-3 rounded-xl bg-gray-900/60 p-4">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex-1">
+        <p class="font-bold">{{ t.task_name }}</p>
+        {% if t.task_description %}
+        <p class="mt-1 text-sm text-gray-400">{{ t.task_description }}</p>
+        {% endif %}
+      </div>
+      <form method="post" action="{{ url_for('finish_a_task_func', task_id=t.id) }}">
+        <button class="{{ accent.finish }} rounded-lg px-4 py-2 text-sm font-bold text-white transition">
+          Selesai
+        </button>
+      </form>
+    </div>
+    <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+      {% if t.priority and t.priority > 0 %}
+      <span class="rounded-full px-3 py-1 font-bold text-xs
+        {% if t.priority == 3 %}bg-red-500/20 text-red-300
+        {% elif t.priority == 2 %}bg-orange-500/20 text-orange-300
+        {% else %}bg-yellow-500/20 text-yellow-300{% endif %}">
+        {% if t.priority == 3 %}Urgent{% elif t.priority == 2 %}Tinggi{% else %}Sedang{% endif %}
+      </span>
+      {% endif %}
+      <span class="rounded-full bg-white/10 px-3 py-1 text-gray-300">{{ t.frequency }}x tersisa</span>
+      {% if t.streak_current > 0 %}
+      <span class="rounded-full {{ accent.badge }} px-3 py-1 font-semibold">{{ t.streak_current }}x berturut-turut</span>
+      {% endif %}
+      {% if t.deadline %}
+      {% set days_left = t.deadline | days_until %}
+      <span class="rounded-full px-3 py-1 text-xs font-semibold
+        {% if days_left < 0 %}bg-red-500/20 text-red-300{% elif days_left == 0 %}bg-orange-500/20 text-orange-300{% elif days_left <= 2 %}bg-amber-500/20 text-amber-300{% else %}bg-white/10 text-gray-300{% endif %}">
+        {% if days_left < 0 %}Terlambat {{ -days_left }} hari{% elif days_left == 0 %}Hari ini!{% else %}Sisa {{ days_left }} hari{% endif %}
+      </span>
+      {% endif %}
+      {% if t.tags %}
+      {% for tag in t.tags.split(',') %}
+      {% set tag_trimmed = tag.strip() %}
+      {% if tag_trimmed %}
+      <span class="rounded bg-white/5 px-2 py-0.5 text-[10px] text-gray-400">{{ tag_trimmed }}</span>
+      {% endif %}
+      {% endfor %}
+      {% endif %}
+      <div class="ml-auto flex items-center gap-2">
+        <details>
+          <summary class="cursor-pointer rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-gray-300 hover:bg-white/10 hover:text-white">Edit</summary>
+          <div class="mt-3 rounded-lg border border-white/10 bg-gray-900/80 p-4">
+            {{ render_task_form(url_for('edit_task_func', task_id=t.id), t, task_type, "Simpan Perubahan") }}
+          </div>
+        </details>
+        <form method="post" action="{{ url_for('delete_task_func', task_id=t.id) }}"
+              onsubmit="return confirm('Hapus task &quot;{{ t.task_name }}&quot;?')">
+          <button class="rounded-lg bg-red-600/80 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-500">
+            Hapus
+          </button>
+        </form>
+      </div>
+    </div>
+    <p class="mt-2 text-sm {{ accent.streak }}">
+      {% if t.streak_current == 0 %}Belum ada streak. Selesaikan task ini hari ini untuk memulai!
+      {% elif t.streak_current == 1 %}Anda telah melakukan ini 1x berturut-turut.
+      {% else %}Anda telah melakukan ini {{ t.streak_current }}x berturut-turut.
+      {% endif %}
+      {% if t.streak_best > 1 and t.streak_best != t.streak_current %}Rekor terbaik: {{ t.streak_best }}x.{% endif %}
+    </p>
+    <details class="mt-3">
+      <summary class="cursor-pointer rounded-lg bg-white/5 px-3 py-2 text-xs font-semibold text-gray-400 transition hover:bg-white/10 hover:text-white">
+        Riwayat penyelesaian ({{ task_dates[t.id] | length }} hari)
+      </summary>
+      <div class="mt-2 flex flex-wrap gap-1">
+        {% if task_dates[t.id] %}
+          {% for d in task_dates[t.id] %}
+          <span class="rounded bg-emerald-900/60 px-2 py-0.5 text-[10px] text-emerald-300">{{ d[8:10] }}/{{ d[5:7] }}</span>
+          {% endfor %}
+        {% else %}
+          <span class="text-xs text-gray-500">Belum ada penyelesaian</span>
+        {% endif %}
+      </div>
+    </details>
+  </div>
+  {% else %}
+  <p class="py-6 text-center text-gray-500">Belum ada task. Tambahkan task baru di atas!</p>
+  {% endfor %}
+</section>
+{% endmacro %}
+
 {% block content %}
 
-<div class="gap-1 flex-auto items-center"> 
-<div class="bg-black mt-10 mx-4 p-5 rounded-2xl">
-  <div class="text-white">
-    <p class="text-4xl mb-5 font-black">
-      MyTaskManager
-    </p>
-    <hr>
-    <p class="mt-5">
-      Welcome to MyTaskManager app, place where you can manage your daily habbits, routines, and tasks.
-    </p>
+<div class="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-900 p-6 shadow-lg">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-3xl font-black">MyTaskManager</p>
+      <p class="mt-1 text-sm text-blue-200">Kelola kebiasaan harian, mingguan, bulanan, dan wujudkan wishlist-mu.</p>
+    </div>
+    <div class="flex gap-3">
+      <div class="rounded-xl bg-white/10 px-4 py-3 text-center backdrop-blur">
+        <p class="text-2xl font-black">{{ stats.done_today }}</p>
+        <p class="text-xs text-blue-200">Selesai hari ini</p>
+      </div>
+      <div class="rounded-xl bg-white/10 px-4 py-3 text-center backdrop-blur">
+        <p class="text-2xl font-black">{{ stats.total }}</p>
+        <p class="text-xs text-blue-200">Total task</p>
+      </div>
+    </div>
   </div>
 </div>
+
+<div class="mt-6 grid gap-6">
+  {{ render_section('Daily Task', task_list_daily, 'daily', {
+      'badge': 'bg-blue-500/20 text-blue-300',
+      'summary': 'text-blue-300',
+      'finish': 'bg-blue-600 hover:bg-blue-500',
+      'streak': 'text-blue-300'
+  }) }}
+
+  {{ render_section('Weekly Task', task_list_weekly, 'weekly', {
+      'badge': 'bg-violet-500/20 text-violet-300',
+      'summary': 'text-violet-300',
+      'finish': 'bg-violet-600 hover:bg-violet-500',
+      'streak': 'text-violet-300'
+  }) }}
+
+  {{ render_section('Monthly Task', task_list_monthly, 'monthly', {
+      'badge': 'bg-emerald-500/20 text-emerald-300',
+      'summary': 'text-emerald-300',
+      'finish': 'bg-emerald-600 hover:bg-emerald-500',
+      'streak': 'text-emerald-300'
+  }) }}
 </div>
 
-<div class="gap-1 flex items-center"> 
-<div class="flex-auto bg-black mt-10 mx-4 p-5 rounded-2xl">
-  <div class="text-white">
-    <p class="text-4xl mb-5 font-black">
-      Your Available Task
-    </p>
-    <hr>
-    <p class="text-3xl mb-5 font-black mt-5">
-      Daily Task
-    </p>
-    
-    {% for task in task_list_daily %}
-
-    <div class="mb-2 p-3 flex justify-between items-center">
-      <div class="flex-1 mr-5 gap-2">
-
-        <p class="mb-5">
-          Nama Task : {{ task.task_name }}
-        </p>
-        <div class="bg-violet-950 rounded-md opacity-95 m-auto p-5">
-          <p>
-            {{ task.task_description }}
-          </p>
-        </div>
-        <p class="mt-5">
-          Frequency : {{ task.frequency }}
-        </p>
-      </div>
-      <form action="/finish_a_task/{{ task.id }}" method="post">
-        
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
-          Finish 
-        </button>
-      </form>
-    </div>
-  <hr class="h-px my-8 bg-neutral-50 border-0">
-      {% endfor %}
-    <p class="text-3xl mb-5 font-black mt-5">
-      Weekly Task
-    </p>
-     {% for task in task_list_weekly %}
-
-    <div class="mb-2 p-3 flex justify-between items-center">
-      <div>
-
-        <p>
-          Nama Task : {{ task.task_name }}
-        </p>
-        <p>
-          Jenis Task : {{ task.task_type }}
-        </p>
-        <p>
-          Frequency : {{ task.frequency }}
-        </p>
-
-      </div>
-      <form action="/finish_a_task/{{ task.id }}" method="post">
-        
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
-          Finish 
-        </button>
-      </form>
-    </div>
-  <hr class="h-px my-8 bg-neutral-50 border-0">
-      {% endfor %}
-    <p class="text-3xl mb-5 font-black mt-5">
-      Monthly Task
-    </p>
- {% for task in task_list_monthly %}
-
-    <div class="mb-2 p-3 flex justify-between items-center">
-      <div>
-
-        <p>
-          Nama Task : {{ task.task_name }}
-        </p>
-        <p>
-          Jenis Task : {{ task.task_type }}
-        </p>
-        <p>
-          Frequency : {{ task.frequency }}
-        </p>
-      </div>
-      <form action="/finish_a_task/{{ task.id }}" method="post">
-        
-        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md">
-          Finish 
-        </button>
-      </form>
-    </div>
-  <hr class="h-px my-8 bg-neutral-50 border-0">
-      {% endfor %}
-  </div>
+<div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+  <form method="post" action="{{ url_for('reset_daily_func') }}"
+        onsubmit="return confirm('Reset semua Daily Task ke periode baru?')">
+    <button class="rounded-lg bg-blue-600/20 px-4 py-2 text-sm font-semibold text-blue-300 transition hover:bg-blue-600/40">
+      Reset Daily
+    </button>
+  </form>
+  <form method="post" action="{{ url_for('reset_weekly_func') }}"
+        onsubmit="return confirm('Reset semua Weekly Task ke periode baru?')">
+    <button class="rounded-lg bg-violet-600/20 px-4 py-2 text-sm font-semibold text-violet-300 transition hover:bg-violet-600/40">
+      Reset Weekly
+    </button>
+  </form>
+  <form method="post" action="{{ url_for('reset_monthly_func') }}"
+        onsubmit="return confirm('Reset semua Monthly Task ke periode baru?')">
+    <button class="rounded-lg bg-emerald-600/20 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-600/40">
+      Reset Monthly
+    </button>
+  </form>
+  <form method="post" action="{{ url_for('reset_all_func') }}"
+        onsubmit="return confirm('Reset SEMUA task ke periode baru?')">
+    <button class="rounded-lg bg-white/5 px-4 py-2 text-sm font-semibold text-gray-400 transition hover:bg-white/10 hover:text-white">
+      Reset Semua
+    </button>
+  </form>
 </div>
-</div>
-  
+
 {% endblock %}

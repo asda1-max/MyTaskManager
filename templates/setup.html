@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <title>Setup Password - MyTaskManager</title>
+  </head>
+  <body class="flex min-h-screen items-center justify-center bg-gray-950 text-gray-100">
+    <div class="w-full max-w-sm rounded-2xl bg-gray-800 p-8 shadow-lg">
+      <h1 class="mb-2 text-center text-3xl font-black">MyTaskManager</h1>
+      <p class="mb-6 text-center text-sm text-gray-400">Buat password untuk mengamankan aplikasi</p>
+      <form method="post" class="grid gap-4">
+        <input type="password" name="password" required minlength="4" placeholder="Password baru"
+               class="w-full rounded-lg border border-white/10 bg-gray-900 px-4 py-3 text-sm outline-none placeholder-gray-500 focus:border-blue-500">
+        <input type="password" name="confirm" required minlength="4" placeholder="Konfirmasi password"
+               class="w-full rounded-lg border border-white/10 bg-gray-900 px-4 py-3 text-sm outline-none placeholder-gray-500 focus:border-blue-500">
+        <button class="w-full rounded-lg bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-500">Simpan Password</button>
+        {% if error %}
+        <p class="text-center text-sm text-red-400">{{ error }}</p>
+        {% endif %}
+      </form>
+    </div>
+  </body>
+</html>

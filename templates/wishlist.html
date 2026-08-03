@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Wishlist - MyTaskManager{% endblock %}
+
+{% set input_class = "w-full rounded-lg border border-white/10 bg-gray-800 px-3 py-2 text-sm outline-none placeholder-gray-500 focus:border-emerald-500" %}
+{% set btn_class = "rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-500" %}
+
+{% block content %}
+
+<div class="rounded-2xl bg-gray-800 p-6 shadow-lg">
+  <div class="mb-5 flex items-center justify-between">
+    <h1 class="text-3xl font-black">Wishlist</h1>
+    <span class="rounded-full bg-white/10 px-3 py-1 text-sm font-bold text-gray-300">{{ wishlist|length }} item</span>
+  </div>
+  <p class="mb-5 text-sm text-gray-400">Barang impian maupun keinginan/impian tanpa harga. Nabung untuk barang, atau tandai selesai saat keinginanmu terwujud!</p>
+  <hr class="mb-5 border-white/10">
+
+  <details class="mb-6 rounded-xl bg-gray-900/60 p-4">
+    <summary class="cursor-pointer text-sm font-bold text-emerald-300">+ Tambah Item Wishlist</summary>
+    <form method="post" action="{{ url_for('add_wishlist_func') }}" class="mt-3 grid gap-3 sm:grid-cols-2">
+      <input name="item_name" required placeholder="Nama (mis. Laptop baru / Liburan ke Jepang)" class="{{ input_class }}">
+      <select name="category" id="add-category" class="{{ input_class }}">
+        <option value="barang">Barang / Pencapaian berbayar</option>
+        <option value="keinginan">Keinginan (tanpa harga)</option>
+      </select>
+      <input name="target_price" id="add-price" type="number" min="0" placeholder="Harga target (Rp, opsional)" class="{{ input_class }}">
+      <textarea name="item_description" rows="2" placeholder="Deskripsi / alasan (opsional)" class="{{ input_class }} sm:col-span-2"></textarea>
+      <div class="sm:col-span-2">
+        <button class="{{ btn_class }}">Simpan Wishlist</button>
+      </div>
+    </form>
+  </details>
+
+  {% if wishlist %}
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for item in wishlist %}
+    {% set pct = (item.saved_amount / item.target_price * 100) | round | int if item.target_price > 0 else 0 %}
+    <div class="flex flex-col rounded-xl bg-gray-900/60 p-4">
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex-1">
+          <p class="font-bold">{{ item.item_name }}</p>
+          {% if item.item_description %}
+          <p class="mt-1 text-sm text-gray-400">{{ item.item_description }}</p>
+          {% endif %}
+        </div>
+        <div class="flex shrink-0 flex-col items-end gap-1">
+          {% if item.achieved %}
+          <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">Tercapai</span>
+          {% endif %}
+          {% if item.category == 'keinginan' %}
+          <span class="rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300">Keinginan</span>
+          {% elif not item.achieved %}
+          <span class="rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-gray-400">Barang</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if item.category == 'barang' %}
+      <div class="mt-4">
+        <div class="h-3 overflow-hidden rounded-full bg-white/10">
+          <div class="h-full rounded-full {% if item.achieved %}bg-emerald-500{% else %}bg-emerald-400{% endif %} transition-all"
+               style="width: {{ pct if pct <= 100 else 100 }}%"></div>
+        </div>
+        <div class="mt-2 flex items-center justify-between text-sm">
+          <p class="font-bold text-emerald-300">{{ item.saved_amount | rupiah }}</p>
+          <p class="text-gray-400">dari {{ item.target_price | rupiah }}</p>
+        </div>
+        <p class="mt-1 text-xs text-gray-500">{{ pct }}% terkumpul</p>
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-2">
+        <form method="post" action="{{ url_for('wishlist_save_func', item_id=item.id) }}">
+          <input name="amount" type="number" min="1" placeholder="Nominal" class="{{ input_class }} mb-2">
+          <button class="w-full rounded-lg bg-emerald-600 px-3 py-2 text-sm font-bold text-white transition hover:bg-emerald-500">Nabung</button>
+        </form>
+        <form method="post" action="{{ url_for('wishlist_save_func', item_id=item.id) }}">
+          <input name="amount" type="number" max="-1" placeholder="Nominal" class="{{ input_class }} mb-2">
+          <button class="w-full rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-gray-300 transition hover:bg-white/10">Tarik</button>
+        </form>
+      </div>
+      {% else %}
+      <div class="mt-4 rounded-lg border border-dashed border-amber-500/30 bg-amber-500/5 px-3 py-3 text-center">
+        <p class="text-sm text-amber-200/80">Keinginan tanpa harga. Wujudkan dan tandai selesai!</p>
+      </div>
+      {% endif %}
+
+      <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+        <details class="flex-1">
+          <summary class="cursor-pointer rounded-lg bg-white/5 px-3 py-2 text-center text-sm font-semibold text-gray-300 hover:bg-white/10 hover:text-white">Edit</summary>
+          <form method="post" action="{{ url_for('edit_wishlist_func', item_id=item.id) }}" class="mt-3 grid gap-2 rounded-lg border border-white/10 bg-gray-900/80 p-3">
+            <input name="item_name" required value="{{ item.item_name }}" class="{{ input_class }}">
+            <select name="category" class="{{ input_class }}">
+              <option value="barang" {% if item.category == 'barang' %}selected{% endif %}>Barang / Pencapaian berbayar</option>
+              <option value="keinginan" {% if item.category == 'keinginan' %}selected{% endif %}>Keinginan (tanpa harga)</option>
+            </select>
+            <textarea name="item_description" rows="2" class="{{ input_class }}">{{ item.item_description }}</textarea>
+            <input name="target_price" type="number" min="0" value="{{ item.target_price }}" class="{{ input_class }}">
+            <button class="{{ btn_class }}">Simpan Perubahan</button>
+          </form>
+        </details>
+        <form method="post" action="{{ url_for('wishlist_achieve_func', item_id=item.id) }}">
+          <button class="rounded-lg {% if item.achieved %}bg-amber-600 hover:bg-amber-500{% else %}bg-emerald-600 hover:bg-emerald-500{% endif %} px-3 py-2 text-sm font-semibold text-white transition">
+            {% if item.achieved %}Buka Lagi{% else %}Tandai Selesai{% endif %}
+          </button>
+        </form>
+        <form method="post" action="{{ url_for('delete_wishlist_func', item_id=item.id) }}"
+              onsubmit="return confirm('Hapus item &quot;{{ item.item_name }}&quot; dari wishlist?')">
+          <button class="rounded-lg bg-red-600/80 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-500">Hapus</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="py-10 text-center text-gray-500">Wishlist masih kosong. Tambahkan barang impian atau keinginanmu sekarang!</p>
+  {% endif %}
+</div>
+
+<script>
+  function togglePrice(select, priceId) {
+    var price = document.getElementById(priceId);
+    if (!price) return;
+    var isWish = select.value === 'keinginan';
+    price.disabled = isWish;
+    if (isWish) price.value = '';
+  }
+  var addCategory = document.getElementById('add-category');
+  if (addCategory) {
+    addCategory.addEventListener('change', function () {
+      togglePrice(this, 'add-price');
+    });
+    togglePrice(addCategory, 'add-price');
+  }
+</script>
+
+{% endblock %}
