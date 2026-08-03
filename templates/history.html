@@ -4,85 +4,85 @@
 
 {% block content %}
 
-<div class="rounded-2xl bg-gray-800 p-6 shadow-lg">
-  <div class="mb-5 flex items-center justify-between">
-    <h1 class="text-3xl font-black">Riwayat Penyelesaian</h1>
-    <span class="rounded-full bg-white/10 px-3 py-1 text-sm font-bold text-gray-300">{{ logs|length }} catatan</span>
+<div class="rounded-2xl bg-gray-800 p-4 sm:p-6 shadow-lg">
+  <div class="mb-4 sm:mb-5 flex items-center justify-between">
+    <h1 class="text-xl sm:text-3xl font-black">Riwayat Penyelesaian</h1>
+    <span class="rounded-full bg-white/10 px-2 sm:px-3 py-1 text-[11px] sm:text-sm font-bold text-gray-300">{{ total_logs }} catatan</span>
   </div>
 
-  <div class="mb-5 flex flex-wrap gap-3">
-    <div class="rounded-xl bg-white/5 px-4 py-3 text-center">
-      <p class="text-2xl font-black">{{ total_logs }}</p>
-      <p class="text-xs text-gray-400">Total selesai</p>
+  <div class="mb-4 sm:mb-5 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+    <div class="rounded-xl bg-white/5 px-3 sm:px-4 py-2 sm:py-3 text-center">
+      <p class="text-lg sm:text-2xl font-black">{{ total_logs }}</p>
+      <p class="text-[10px] sm:text-xs text-gray-400">Total selesai</p>
     </div>
-    <div class="rounded-xl bg-white/5 px-4 py-3 text-center">
-      <p class="text-2xl font-black">{{ chart[-7:] | map(attribute='total') | sum }}</p>
-      <p class="text-xs text-gray-400">7 hari terakhir</p>
+    <div class="rounded-xl bg-white/5 px-3 sm:px-4 py-2 sm:py-3 text-center">
+      <p class="text-lg sm:text-2xl font-black">{{ chart[-7:] | map(attribute='total') | sum }}</p>
+      <p class="text-[10px] sm:text-xs text-gray-400">7 hari terakhir</p>
     </div>
-    <div class="rounded-xl bg-white/5 px-4 py-3 text-center">
-      <p class="text-2xl font-black">{{ chart | map(attribute='total') | max }}</p>
-      <p class="text-xs text-gray-400">Puncak harian (30 hari)</p>
+    <div class="rounded-xl bg-white/5 px-3 sm:px-4 py-2 sm:py-3 text-center">
+      <p class="text-lg sm:text-2xl font-black">{{ chart | map(attribute='total') | max }}</p>
+      <p class="text-[10px] sm:text-xs text-gray-400">Puncak harian</p>
     </div>
-    <div class="rounded-xl bg-white/5 px-4 py-3 text-center">
+    <div class="rounded-xl bg-white/5 px-3 sm:px-4 py-2 sm:py-3 text-center">
       {% set ns = namespace(total=0) %}
       {% for w in heatmap %}{% for d in w.days %}{% set ns.total = ns.total + d.total %}{% endfor %}{% endfor %}
-      <p class="text-2xl font-black">{{ ns.total }}</p>
-      <p class="text-xs text-gray-400">Total tahun ini</p>
+      <p class="text-lg sm:text-2xl font-black">{{ ns.total }}</p>
+      <p class="text-[10px] sm:text-xs text-gray-400">Total tahun ini</p>
     </div>
   </div>
 
-  <div class="mb-6 rounded-xl bg-gray-900/60 p-4">
-    <p class="mb-4 font-bold">Grafik Timeline - 30 Hari Terakhir</p>
-    <div class="flex h-40 items-end gap-1">
+  <div class="mb-4 sm:mb-6 rounded-xl bg-gray-900/60 p-3 sm:p-4">
+    <p class="mb-3 font-bold text-sm sm:text-base">Grafik Timeline - 30 Hari Terakhir</p>
+    <div class="flex h-24 sm:h-40 items-end gap-[1px] sm:gap-1">
       {% set peak = chart | map(attribute='total') | max %}
       {% set scale = peak if peak > 0 else 1 %}
       {% for c in chart %}
       <div class="group relative flex-1">
         <div class="w-full rounded-t {% if c.total > 0 %}bg-emerald-400 group-hover:bg-emerald-300{% else %}bg-white/5{% endif %}"
-             style="height: {{ [ (c.total / scale * 160) | round | int, 4 ] | max }}px"
+             style="height: {{ [ (c.total / scale * 96) | round | int, 3 ] | max }}px"
              title="{{ c.day }} : {{ c.total }}x selesai"></div>
       </div>
       {% endfor %}
     </div>
-    <div class="mt-1 flex gap-1">
+    <div class="mt-1 flex gap-[1px] sm:gap-1">
       {% for c in chart %}
-      <div class="flex-1 text-center text-[10px] text-gray-500">
+      <div class="flex-1 text-center text-[7px] sm:text-[10px] text-gray-500">
         {% if loop.index0 % 5 == 0 or loop.last %}{{ c.day[8:10] }}{% endif %}
       </div>
       {% endfor %}
     </div>
   </div>
 
-  <div class="mb-6 rounded-xl bg-gray-900/60 p-4">
-    <div class="mb-4 flex items-center justify-between">
-      <p class="font-bold">Kalender Aktivitas Tahunan</p>
-      <div class="flex items-center gap-1 text-xs text-gray-400">
+  <div class="mb-6 overflow-x-auto rounded-xl bg-gray-900/60 p-3 sm:p-4">
+    <div class="mb-3 flex items-center justify-between">
+      <p class="font-bold text-sm sm:text-base">Kalender Aktivitas Tahunan</p>
+      <div class="flex items-center gap-0.5 sm:gap-1 text-[9px] sm:text-xs text-gray-400">
         <span>Kurang</span>
-        <span class="h-3 w-3 rounded-sm bg-white/10"></span>
-        <span class="h-3 w-3 rounded-sm bg-emerald-900"></span>
-        <span class="h-3 w-3 rounded-sm bg-emerald-700"></span>
-        <span class="h-3 w-3 rounded-sm bg-emerald-500"></span>
-        <span class="h-3 w-3 rounded-sm bg-emerald-300"></span>
+        <span class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-white/10"></span>
+        <span class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-emerald-900"></span>
+        <span class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-emerald-700"></span>
+        <span class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-emerald-500"></span>
+        <span class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-emerald-300"></span>
         <span>Banyak</span>
       </div>
     </div>
-    <div class="overflow-x-auto">
-      <table class="border-separate border-spacing-[2px]">
+    <div class="overflow-x-auto pb-2 -mx-1 px-1">
+      <table class="border-separate border-spacing-[1px] sm:border-spacing-[2px]">
         <thead>
           <tr>
             <th></th>
             {% for week in heatmap %}
-            <th class="px-0 pb-1 text-center text-[9px] font-normal text-gray-500">{{ week.month_label }}</th>
+            <th class="px-0 pb-1 text-center text-[7px] sm:text-[9px] font-normal text-gray-500">{{ week.month_label }}</th>
             {% endfor %}
           </tr>
         </thead>
         <tbody>
           {% for row_index in range(7) %}
           <tr>
-            <td class="pr-1 text-[10px] text-gray-500">{{ ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'][row_index] }}</td>
+            <td class="pr-0.5 sm:pr-1 text-[8px] sm:text-[10px] text-gray-500">{{ ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'][row_index] }}</td>
             {% for week in heatmap %}
             {% set cell = week.days[row_index] %}
-            <td class="h-[10px] w-[10px] rounded-sm {% if cell.future %}bg-white/5 opacity-20{% elif cell.total == 0 %}bg-white/10{% elif cell.total == 1 %}bg-emerald-900{% elif cell.total == 2 %}bg-emerald-700{% elif cell.total == 3 %}bg-emerald-500{% else %}bg-emerald-300{% endif %}"
+            <td class="h-[6px] w-[6px] sm:h-[10px] sm:w-[10px] rounded-sm {% if cell.future %}bg-white/5 opacity-20{% elif cell.total == 0 %}bg-white/10{% elif cell.total == 1 %}bg-emerald-900{% elif cell.total == 2 %}bg-emerald-700{% elif cell.total == 3 %}bg-emerald-500{% else %}bg-emerald-300{% endif %}"
                 title="{{ cell.day.strftime('%d %b %Y') }} : {{ cell.total }}x selesai"></td>
             {% endfor %}
           </tr>
@@ -92,11 +92,11 @@
     </div>
   </div>
 
-  <hr class="mb-5 border-white/10">
-  <div class="mb-4 flex items-center justify-between">
-    <p class="font-bold">Daftar Penyelesaian</p>
+  <hr class="mb-4 sm:mb-5 border-white/10">
+  <div class="mb-3 sm:mb-4 flex items-center justify-between">
+    <p class="font-bold text-sm sm:text-base">Daftar Penyelesaian</p>
     <a href="{{ url_for('export_data') }}"
-       class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-500">
+       class="rounded-lg bg-emerald-600 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-semibold text-white transition hover:bg-emerald-500 whitespace-nowrap">
       Export JSON
     </a>
   </div>
@@ -104,30 +104,30 @@
   {% if logs %}
   <ul class="divide-y divide-white/10">
     {% for log in logs %}
-    <li class="flex items-center justify-between gap-3 py-3">
-      <div class="flex items-center gap-3">
+    <li class="flex items-center justify-between gap-2 sm:gap-3 py-2 sm:py-3">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
         {% if log.task_type == 'daily' %}
-        <span class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-bold text-blue-300">Daily</span>
+        <span class="rounded-full bg-blue-500/20 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold text-blue-300 shrink-0">Daily</span>
         {% elif log.task_type == 'weekly' %}
-        <span class="rounded-full bg-violet-500/20 px-3 py-1 text-xs font-bold text-violet-300">Weekly</span>
+        <span class="rounded-full bg-violet-500/20 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold text-violet-300 shrink-0">Weekly</span>
         {% else %}
-        <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">Monthly</span>
+        <span class="rounded-full bg-emerald-500/20 px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-bold text-emerald-300 shrink-0">Monthly</span>
         {% endif %}
-        <p class="font-semibold">{{ log.task_name }}</p>
+        <p class="font-semibold text-sm sm:text-base truncate">{{ log.task_name }}</p>
       </div>
-      <p class="text-sm text-gray-400">{{ log.completed_at | datetime_ind }}</p>
+      <p class="text-[11px] sm:text-sm text-gray-400 shrink-0">{{ log.completed_at | datetime_ind }}</p>
     </li>
     {% endfor %}
   </ul>
-  <div class="mt-4 flex items-center justify-center gap-2 text-sm">
+  <div class="mt-3 sm:mt-4 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm">
     {% if page > 1 %}
     <a href="{{ url_for('history', page=page-1) }}"
-       class="rounded-lg bg-white/5 px-3 py-1.5 text-gray-300 transition hover:bg-white/10 hover:text-white">Sebelumnya</a>
+       class="rounded-lg bg-white/5 px-2 sm:px-3 py-1.5 text-gray-300 transition hover:bg-white/10 hover:text-white">Sebelumnya</a>
     {% endif %}
-    <span class="text-gray-500">Halaman {{ page }} dari {{ total_pages }}</span>
+    <span class="text-gray-500 px-1">{{ page }} / {{ total_pages }}</span>
     {% if page < total_pages %}
     <a href="{{ url_for('history', page=page+1) }}"
-       class="rounded-lg bg-white/5 px-3 py-1.5 text-gray-300 transition hover:bg-white/10 hover:text-white">Selanjutnya</a>
+       class="rounded-lg bg-white/5 px-2 sm:px-3 py-1.5 text-gray-300 transition hover:bg-white/10 hover:text-white">Selanjutnya</a>
     {% endif %}
   </div>
   {% else %}
