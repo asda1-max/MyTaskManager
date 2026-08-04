@@ -312,4 +312,4 @@ if __name__ == "__main__":
         if not task.select_current_task(task_type):
             task.update_current_task(task_type)
     print("Server dimulai :", datetime.now())
-    app.run(debug=True, use_reloader=False, host="0.0.0.0")
+    app.run(debug=True, use_reloader=False, host="0.0.0.0", port=8010)
