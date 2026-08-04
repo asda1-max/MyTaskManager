@@ -80,8 +80,11 @@
       {% for c in chart %}
       <div class="group relative flex-1">
         <div class="w-full rounded-t {% if c.total > 0 %}bg-blue-400 group-hover:bg-blue-300{% else %}bg-white/5{% endif %}"
-             style="height: {{ [ (c.total / scale * 96) | round | int, 3 ] | max }}px"
-             title="{{ c.day }} : {{ c.total }}x selesai"></div>
+             style="height: {{ [ (c.total / scale * 96) | round | int, 3 ] | max }}px">
+        </div>
+        <div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 hidden group-hover:flex items-center bg-gray-900 text-white text-[10px] px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap z-10">
+          <span class="font-bold">{{ c.total }}</span><span class="text-gray-400">x</span>
+        </div>
       </div>
       {% endfor %}
     </div>

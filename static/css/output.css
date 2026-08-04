@@ -226,6 +226,9 @@
   }
 }
 @layer utilities {
+  .absolute {
+    position: absolute;
+  }
   .relative {
     position: relative;
   }
@@ -237,6 +240,12 @@
   }
   .top-0 {
     top: calc(var(--spacing) * 0);
+  }
+  .bottom-full {
+    bottom: 100%;
+  }
+  .left-1\/2 {
+    left: calc(1 / 2 * 100%);
   }
   .z-10 {
     z-index: 10;
@@ -264,6 +273,9 @@
   }
   .mt-6 {
     margin-top: calc(var(--spacing) * 6);
+  }
+  .mb-1 {
+    margin-bottom: calc(var(--spacing) * 1);
   }
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
@@ -350,6 +362,10 @@
     --tw-border-spacing-x: 1px;
     --tw-border-spacing-y: 1px;
     border-spacing: var(--tw-border-spacing-x) var(--tw-border-spacing-y);
+  }
+  .-translate-x-1\/2 {
+    --tw-translate-x: calc(calc(1 / 2 * 100%) * -1);
+    translate: var(--tw-translate-x) var(--tw-translate-y);
   }
   .cursor-pointer {
     cursor: pointer;
@@ -891,6 +907,13 @@
     --tw-outline-style: none;
     outline-style: none;
   }
+  .group-hover\:flex {
+    &:is(:where(.group):hover *) {
+      @media (hover: hover) {
+        display: flex;
+      }
+    }
+  }
   .group-hover\:bg-blue-300 {
     &:is(:where(.group):hover *) {
       @media (hover: hover) {
@@ -1273,6 +1296,21 @@
   inherits: false;
   initial-value: 0;
 }
+@property --tw-translate-x {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-translate-y {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
+@property --tw-translate-z {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
 @property --tw-divide-y-reverse {
   syntax: "*";
   inherits: false;
@@ -1492,6 +1530,9 @@
     *, ::before, ::after, ::backdrop {
       --tw-border-spacing-x: 0;
       --tw-border-spacing-y: 0;
+      --tw-translate-x: 0;
+      --tw-translate-y: 0;
+      --tw-translate-z: 0;
       --tw-divide-y-reverse: 0;
       --tw-border-style: solid;
       --tw-gradient-position: initial;

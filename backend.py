@@ -287,8 +287,10 @@ class task_manager():
 
     def check_task_completion(self, task_id):
         """
-        Menandai task selesai: dicatat ke log, update streak, frequency tetap tidak berubah
-        Task tetap di CURRENT_TASK (tidak dihapus meski frequency habis)
+        Kurangi frequency task sebanyak 1, catat ke log.
+        Task dianggap selesai untuk periode ini saat frequency mencapai 0.
+        Setiap klik Selesai = 1 baris log (misal '09:00', '10:00', dst).
+        Task tetap di CURRENT_TASK (tidak dihapus).
         """
         connection = self._connect()
         cursor = connection.cursor()
@@ -297,11 +299,16 @@ class task_manager():
         if not row:
             connection.close()
             return False
-        cursor.execute("""
-            INSERT INTO COMPLETION_LOG(task_id, task_name, task_type)
-            VALUES (?, ?, ?)
-        """, (task_id, row["task_name"], row["task_type"]))
-        self.update_streak(cursor, task_id)
+        if row["frequency"] > 0:
+            new_frequency = row["frequency"] - 1
+            cursor.execute(
+                "UPDATE CURRENT_TASK SET frequency = ? WHERE id = ?",
+                (new_frequency, task_id))
+            cursor.execute("""
+                INSERT INTO COMPLETION_LOG(task_id, task_name, task_type)
+                VALUES (?, ?, ?)
+            """, (task_id, row["task_name"], row["task_type"]))
+            self.update_streak(cursor, task_id)
         connection.commit()
         connection.close()
         return True

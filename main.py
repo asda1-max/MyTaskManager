@@ -68,8 +68,8 @@ def load_dashboard_data():
         unfinished = []
         finished = []
         for t in all_tasks:
-            t["ever_finished"] = bool(task_dates.get(t["id"]))
-            if t["ever_finished"]:
+            t["finished"] = (t["frequency"] or 0) <= 0
+            if t["finished"]:
                 finished.append(t)
             else:
                 unfinished.append(t)
