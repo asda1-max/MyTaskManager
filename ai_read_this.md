@@ -9,6 +9,8 @@ Fitur utama:
 
 - **Task harian / mingguan / bulanan** dengan frekuensi per periode (bisa selesai >1x per periode), prioritas (Normal/Sedang/Tinggi/Urgent), deadline, dan tags
 - **Streak** per task (consecutive days) + pesan "Anda telah melakukan ini Nx berturut-turut"
+- **Task selesai tetap muncul**: task tidak dihapus dari CURRENT_TASK saat selesai — setiap task punya section "Belum Selesai" dan "Selesai" (dibedakan berdasarkan ada/tidaknya riwayat penyelesaian)
+- **Detail task per-task**: setiap task card clickable menuju `/task_detail/<id>` yang menampilkan info lengkap + grafik 30 hari + riwayat log penyelesaian
 - **Riwayat penyelesaian** + graph timeline (bar chart 30 hari) di halaman `/history`
 - **Kalender aktivitas tahunan** (GitHub-style heatmap, 52 minggu) di halaman `/history`
 - **Timeline per-task** di dashboard: riwayat tanggal penyelesaian per task (collapsible)
@@ -34,7 +36,8 @@ python main.py
 | `main.py` | Route Flask (~245 baris), scheduler APScheduler, filter Jinja (`rupiah`, `datetime_ind`, `days_until`), helper `translate_raw_data()` dan `load_dashboard_data()`, auth `before_request` + login/setup/logout |
 | `backend.py` | Kelas `task_manager()` (~585 baris): semua logika CRUD task (termasuk prioritas/deadline/tags), streak, log, wishlist, migrasi DB otomatis, export data, pagination log, password management |
 | `templates/base.html` | Layout + navbar (Dashboard / Riwayat / Wishlist), sticky, backdrop-blur, dark theme |
-| `templates/index.html` | Dashboard: hero stats + 3 section (daily/blue, weekly/violet, monthly/emerald) via macro `render_section` + `render_task_form` (termasuk prioritas/deadline/tags), tombol Selesai, Edit, Hapus, streak message, badge prioritas, deadline countdown, tags, per-task completion timeline, tombol Reset Semua |
+| `templates/index.html` | Dashboard: hero stats + 3 section (daily/blue, weekly/violet, monthly/emerald) via macro `render_section` + `render_task_form` (termasuk prioritas/deadline/tags), task terbagi jadi "Belum Selesai" dan "Selesai", tiap task clickable menuju `/task_detail/<id>`, tombol reset per tipe |
+| `templates/detail_task.html` | Halaman detail task: nama, deskripsi, tipe, prioritas, deadline, tags, stats (total selesai, streak, frekuensi), grafik bar 30 hari per-task, daftar riwayat penyelesaian |
 | `templates/history.html` | Bar chart 30 hari + kalender aktivitas tahunan 52 minggu (GitHub-style, grid Senin-Minggu dengan legenda warna) + stat total tahun ini + daftar log dengan pagination + tombol Export JSON |
 | `templates/login.html` | Halaman login dengan "Ingat device ini" checkbox |
 | `templates/setup.html` | Halaman setup password pertama kali |
@@ -85,6 +88,7 @@ Migrasi otomatis di `migrate_database()` (saat startup): membuat tabel baru bila
 | `/reset_weekly` | POST | Reset hanya Weekly Task |
 | `/reset_monthly` | POST | Reset hanya Monthly Task |
 | `/reset_all` | POST | Reset semua task (Daily+Weekly+Monthly) |
+| `/task_detail/<id>` | GET | Halaman detail task: info lengkap, grafik 30 hari per-task, riwayat log |
 | `/history` | GET | Riwayat: log (paginated, 50/halaman), bar chart 30 hari, heatmap tahunan 52 minggu |
 | `/export` | GET | Export seluruh data (tasks, logs, streaks, wishlist) sebagai JSON |
 | `/wishlist` | GET | Daftar wishlist |
@@ -127,3 +131,6 @@ Migrasi otomatis di `migrate_database()` (saat startup): membuat tabel baru bila
 - Password: disimpan di `config.json` (file lokal) dengan format `salt:sha256_hash`. Token remember device juga disimpan di file yang sama. **Hapus config.json untuk reset password** atau ganti password via edit manual file.
 - Auth: `before_request` mengecek session/cookie. Route yang dikecualikan: `login`, `login_func`, `setup`, `setup_func`, `static`. Setelah login sukses, checkbox "Ingat device ini" menyimpan cookie `remember_token` selama 1 tahun.
 - Tombol "Keluar" di navbar (base.html) untuk logout dan hapus cookie.
+- Task tidak lagi dihapus dari CURRENT_TASK saat selesai. Setiap section task dibagi menjadi "Belum Selesai" (belum pernah selesai) dan "Selesai" (pernah selesai). Masing-masing task card clickable menuju `/task_detail/<id>`.
+- Halaman `/task_detail/<id>` menampilkan: nama, deskripsi, tipe, prioritas, deadline, tags, statistik (total selesai, streak, frekuensi), grafik bar chart 30 hari spesifik untuk task itu, dan daftar riwayat penyelesaian.
+- Di backend, `get_task_detail(task_id)` menggabungkan data TASK + STREAK + log_count. `select_logs_by_task(task_id)` mengambil log spesifik task. `select_completions_by_day_per_task(task_id, days)` mengambil data chart per task.

@@ -287,7 +287,8 @@ class task_manager():
 
     def check_task_completion(self, task_id):
         """
-        Menandai task selesai: dicatat ke log, update streak, kurangi frequency
+        Menandai task selesai: dicatat ke log, update streak, frequency tetap tidak berubah
+        Task tetap di CURRENT_TASK (tidak dihapus meski frequency habis)
         """
         connection = self._connect()
         cursor = connection.cursor()
@@ -301,14 +302,6 @@ class task_manager():
             VALUES (?, ?, ?)
         """, (task_id, row["task_name"], row["task_type"]))
         self.update_streak(cursor, task_id)
-        remaining = row["frequency"] - 1
-        if remaining <= 0:
-            print(f"jatah task habis, menghapus : {row['task_name']}")
-            cursor.execute("DELETE FROM CURRENT_TASK WHERE id = ?", (task_id,))
-        else:
-            print(f"frequency dikurangi : {remaining}x tersisa")
-            cursor.execute(
-                "UPDATE CURRENT_TASK SET frequency = ? WHERE id = ?", (remaining, task_id))
         connection.commit()
         connection.close()
         return True
@@ -486,6 +479,61 @@ class task_manager():
             "streaks": streaks,
             "wishlist": wishlist,
         }
+
+    def get_task_detail(self, task_id):
+        """
+        Mengambil detail task dari TASK + streak + jumlah log
+        """
+        connection = self._connect()
+        task_row = connection.execute("SELECT * FROM TASK WHERE id = ?", (task_id,)).fetchone()
+        streak_row = connection.execute("SELECT * FROM STREAK WHERE task_id = ?", (task_id,)).fetchone()
+        log_count = connection.execute("SELECT COUNT(*) AS c FROM COMPLETION_LOG WHERE task_id = ?", (task_id,)).fetchone()["c"]
+        connection.close()
+        if not task_row:
+            return None
+        result = dict(task_row)
+        if streak_row:
+            result["streak_current"] = streak_row["current_streak"]
+            result["streak_best"] = streak_row["best_streak"]
+            result["last_completed"] = streak_row["last_completed"]
+        else:
+            result["streak_current"] = 0
+            result["streak_best"] = 0
+            result["last_completed"] = None
+        result["log_count"] = log_count
+        return result
+
+    def select_logs_by_task(self, task_id, limit=100):
+        """
+        Mengambil daftar log penyelesaian untuk task tertentu
+        """
+        connection = self._connect()
+        rows = [dict(row) for row in connection.execute(
+            "SELECT * FROM COMPLETION_LOG WHERE task_id = ? ORDER BY id DESC LIMIT ?",
+            (task_id, limit))]
+        connection.close()
+        return rows
+
+    def select_completions_by_day_per_task(self, task_id, days=30):
+        """
+        Jumlah penyelesaian per hari untuk task tertentu dalam N hari terakhir
+        """
+        connection = self._connect()
+        rows = {
+            row["day"]: row["total"] for row in connection.execute(
+                "SELECT date(completed_at) AS day, COUNT(*) AS total "
+                "FROM COMPLETION_LOG "
+                "WHERE task_id = ? AND date(completed_at) >= date('now', 'localtime', ?) "
+                "GROUP BY date(completed_at) ORDER BY day",
+                (task_id, f"-{days - 1} days"))
+        }
+        connection.close()
+        result = []
+        today = date.today()
+        for offset in range(days - 1, -1, -1):
+            day = today - timedelta(days=offset)
+            result.append({"day": day.isoformat(), "total": rows.get(day.isoformat(), 0)})
+        return result
 
     # ============ PASSWORD & AUTH ============
 

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Detail Task - MyTaskManager{% endblock %}
+
+{% block content %}
+
+<div class="rounded-2xl bg-gray-800 p-4 sm:p-6 shadow-lg">
+  <a href="{{ url_for('index') }}" class="inline-block mb-4 text-sm text-gray-400 hover:text-white transition">&larr; Kembali ke Dashboard</a>
+
+  <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl sm:text-3xl font-black">{{ task.task_name }}</h1>
+      {% if task.task_description %}
+      <p class="mt-2 text-sm text-gray-400">{{ task.task_description }}</p>
+      {% endif %}
+    </div>
+    <div class="flex items-center gap-2">
+      {% if task.task_type == 'daily' %}
+      <span class="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-bold text-blue-300">Daily</span>
+      {% elif task.task_type == 'weekly' %}
+      <span class="rounded-full bg-violet-500/20 px-3 py-1 text-xs font-bold text-violet-300">Weekly</span>
+      {% else %}
+      <span class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300">Monthly</span>
+      {% endif %}
+      {% if task.priority and task.priority > 0 %}
+      <span class="rounded-full px-3 py-1 text-xs font-bold
+        {% if task.priority == 3 %}bg-red-500/20 text-red-300
+        {% elif task.priority == 2 %}bg-orange-500/20 text-orange-300
+        {% else %}bg-yellow-500/20 text-yellow-300{% endif %}">
+        {% if task.priority == 3 %}Urgent{% elif task.priority == 2 %}Tinggi{% else %}Sedang{% endif %}
+      </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div class="rounded-xl bg-white/5 px-3 py-3 text-center">
+      <p class="text-xl sm:text-2xl font-black">{{ task.log_count }}</p>
+      <p class="text-[10px] sm:text-xs text-gray-400">Total selesai</p>
+    </div>
+    <div class="rounded-xl bg-white/5 px-3 py-3 text-center">
+      <p class="text-xl sm:text-2xl font-black">{{ task.streak_current }}x</p>
+      <p class="text-[10px] sm:text-xs text-gray-400">Streak saat ini</p>
+    </div>
+    <div class="rounded-xl bg-white/5 px-3 py-3 text-center">
+      <p class="text-xl sm:text-2xl font-black">{{ task.streak_best }}x</p>
+      <p class="text-[10px] sm:text-xs text-gray-400">Streak terbaik</p>
+    </div>
+    <div class="rounded-xl bg-white/5 px-3 py-3 text-center">
+      <p class="text-xl sm:text-2xl font-black">{{ task.frequency }}x</p>
+      <p class="text-[10px] sm:text-xs text-gray-400">Frekuensi/periode</p>
+    </div>
+  </div>
+
+  {% if task.deadline or task.tags %}
+  <div class="mb-6 flex flex-wrap items-center gap-2">
+    {% if task.deadline %}
+    {% set days_left = task.deadline | days_until %}
+    <span class="rounded-full px-3 py-1 text-xs font-semibold
+      {% if days_left < 0 %}bg-red-500/20 text-red-300{% elif days_left == 0 %}bg-orange-500/20 text-orange-300{% elif days_left <= 2 %}bg-amber-500/20 text-amber-300{% else %}bg-white/10 text-gray-300{% endif %}">
+      {% if days_left < 0 %}Terlambat {{ -days_left }} hari{% elif days_left == 0 %}Hari ini!{% else %}Sisa {{ days_left }} hari{% endif %}
+    </span>
+    {% endif %}
+    {% if task.tags %}
+    {% for tag in task.tags.split(',') %}
+    {% set tag_trimmed = tag.strip() %}
+    {% if tag_trimmed %}
+    <span class="rounded bg-white/5 px-2 py-0.5 text-[10px] text-gray-400">{{ tag_trimmed }}</span>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="mb-6 rounded-xl bg-gray-900/60 p-3 sm:p-4">
+    <p class="mb-3 font-bold text-sm sm:text-base">Grafik 30 Hari Terakhir</p>
+    {% set peak = chart | map(attribute='total') | max %}
+    {% set scale = peak if peak > 0 else 1 %}
+    <div class="flex h-24 sm:h-32 items-end gap-[1px] sm:gap-1">
+      {% for c in chart %}
+      <div class="group relative flex-1">
+        <div class="w-full rounded-t {% if c.total > 0 %}bg-blue-400 group-hover:bg-blue-300{% else %}bg-white/5{% endif %}"
+             style="height: {{ [ (c.total / scale * 96) | round | int, 3 ] | max }}px"
+             title="{{ c.day }} : {{ c.total }}x selesai"></div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="mt-1 flex gap-[1px] sm:gap-1">
+      {% for c in chart %}
+      <div class="flex-1 text-center text-[7px] sm:text-[10px] text-gray-500">
+        {% if loop.index0 % 5 == 0 or loop.last %}{{ c.day[8:10] }}{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <hr class="mb-4 border-white/10">
+  <p class="mb-3 font-bold text-sm sm:text-base">Riwayat Penyelesaian</p>
+
+  {% if logs %}
+  <ul class="divide-y divide-white/10">
+    {% for log in logs %}
+    <li class="flex items-center justify-between py-2">
+      <p class="text-sm text-gray-300">{{ log.task_name }}</p>
+      <p class="text-xs text-gray-500">{{ log.completed_at | datetime_ind }}</p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="py-6 text-center text-gray-500">Belum ada penyelesaian untuk task ini.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

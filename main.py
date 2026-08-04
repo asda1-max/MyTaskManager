@@ -61,14 +61,23 @@ def translate_raw_data(raw_task_list, streaks=None):
 
 def load_dashboard_data():
     streaks = task.get_streaks()
-    daily = translate_raw_data(task.select_current_task("daily"), streaks)
-    weekly = translate_raw_data(task.select_current_task("weekly"), streaks)
-    monthly = translate_raw_data(task.select_current_task("monthly"), streaks)
     task_dates = task.select_all_completion_dates_grouped()
+    result = {}
+    for tp in ("daily", "weekly", "monthly"):
+        all_tasks = translate_raw_data(task.select_current_task(tp), streaks)
+        unfinished = []
+        finished = []
+        for t in all_tasks:
+            t["ever_finished"] = bool(task_dates.get(t["id"]))
+            if t["ever_finished"]:
+                finished.append(t)
+            else:
+                unfinished.append(t)
+        result[tp] = {"unfinished": unfinished, "finished": finished, "all": all_tasks}
     return {
-        "daily": daily,
-        "weekly": weekly,
-        "monthly": monthly,
+        "daily": result["daily"],
+        "weekly": result["weekly"],
+        "monthly": result["monthly"],
         "task_dates": task_dates,
     }
 
@@ -195,6 +204,16 @@ def delete_task_func(task_id):
 def finish_a_task_func(task_id):
     task.check_task_completion(task_id)
     return redirect(url_for("index"))
+
+
+@app.route("/task_detail/<int:task_id>")
+def task_detail(task_id):
+    detail = task.get_task_detail(task_id)
+    if not detail:
+        return redirect(url_for("index"))
+    logs = task.select_logs_by_task(task_id)
+    chart = task.select_completions_by_day_per_task(task_id, 30)
+    return render_template("detail_task.html", task=detail, logs=logs, chart=chart)
 
 
 @app.route("/reset_daily", methods=["POST"])

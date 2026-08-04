@@ -40,11 +40,11 @@
 </form>
 {% endmacro %}
 
-{% macro render_section(title, tasks, task_type, accent) %}
+{% macro render_section(title, unfinished_tasks, finished_tasks, task_type, accent) %}
 <section class="rounded-2xl bg-gray-800 p-4 sm:p-5 shadow-lg">
   <div class="mb-3 sm:mb-4 flex items-center justify-between">
     <h2 class="text-lg sm:text-2xl font-black">{{ title }}</h2>
-    <span class="rounded-full {{ accent.badge }} px-2 sm:px-3 py-0.5 sm:py-1 text-[11px] sm:text-sm font-bold">{{ tasks|length }} aktif</span>
+    <span class="rounded-full {{ accent.badge }} px-2 sm:px-3 py-0.5 sm:py-1 text-[11px] sm:text-sm font-bold">{{ unfinished_tasks|length + finished_tasks|length }} total</span>
   </div>
 
   <details class="mb-3 sm:mb-4 rounded-xl bg-gray-900/60 p-3 sm:p-4">
@@ -54,89 +54,68 @@
     </div>
   </details>
 
-  {% for t in tasks %}
-  <div class="mb-3 rounded-xl bg-gray-900/60 p-3 sm:p-4">
+  {% if unfinished_tasks %}
+  <p class="mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">Belum Selesai</p>
+  {% for t in unfinished_tasks %}
+  <a href="{{ url_for('task_detail', task_id=t.id) }}" class="block mb-3 rounded-xl bg-gray-900/60 p-3 sm:p-4 hover:bg-gray-900/80 transition">
     <div class="flex items-start justify-between gap-3">
-      <div class="flex-1">
-        <p class="font-bold">{{ t.task_name }}</p>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold truncate">{{ t.task_name }}</p>
         {% if t.task_description %}
-        <p class="mt-1 text-sm text-gray-400">{{ t.task_description }}</p>
+        <p class="mt-1 text-sm text-gray-400 truncate">{{ t.task_description }}</p>
         {% endif %}
       </div>
-      <form method="post" action="{{ url_for('finish_a_task_func', task_id=t.id) }}">
+      <form method="post" action="{{ url_for('finish_a_task_func', task_id=t.id) }}" onclick="event.stopPropagation()">
         <button class="{{ accent.finish }} rounded-lg px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-white transition">
           Selesai
         </button>
       </form>
     </div>
-    <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+    <div class="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs">
       {% if t.priority and t.priority > 0 %}
-      <span class="rounded-full px-3 py-1 font-bold text-xs
+      <span class="rounded-full px-2 py-0.5 font-bold
         {% if t.priority == 3 %}bg-red-500/20 text-red-300
         {% elif t.priority == 2 %}bg-orange-500/20 text-orange-300
         {% else %}bg-yellow-500/20 text-yellow-300{% endif %}">
         {% if t.priority == 3 %}Urgent{% elif t.priority == 2 %}Tinggi{% else %}Sedang{% endif %}
       </span>
       {% endif %}
-      <span class="rounded-full bg-white/10 px-3 py-1 text-gray-300">{{ t.frequency }}x tersisa</span>
-      {% if t.streak_current > 0 %}
-      <span class="rounded-full {{ accent.badge }} px-3 py-1 font-semibold">{{ t.streak_current }}x berturut-turut</span>
-      {% endif %}
-      {% if t.deadline %}
-      {% set days_left = t.deadline | days_until %}
-      <span class="rounded-full px-3 py-1 text-xs font-semibold
-        {% if days_left < 0 %}bg-red-500/20 text-red-300{% elif days_left == 0 %}bg-orange-500/20 text-orange-300{% elif days_left <= 2 %}bg-amber-500/20 text-amber-300{% else %}bg-white/10 text-gray-300{% endif %}">
-        {% if days_left < 0 %}Terlambat {{ -days_left }} hari{% elif days_left == 0 %}Hari ini!{% else %}Sisa {{ days_left }} hari{% endif %}
-      </span>
-      {% endif %}
       {% if t.tags %}
       {% for tag in t.tags.split(',') %}
       {% set tag_trimmed = tag.strip() %}
       {% if tag_trimmed %}
-      <span class="rounded bg-white/5 px-2 py-0.5 text-[10px] text-gray-400">{{ tag_trimmed }}</span>
+      <span class="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-gray-400">{{ tag_trimmed }}</span>
       {% endif %}
       {% endfor %}
       {% endif %}
-      <div class="ml-auto flex items-center gap-1 sm:gap-2">
-        <details>
-          <summary class="cursor-pointer rounded-lg bg-white/5 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-300 hover:bg-white/10 hover:text-white">Edit</summary>
-          <div class="mt-3 rounded-lg border border-white/10 bg-gray-900/80 p-3 sm:p-4">
-            {{ render_task_form(url_for('edit_task_func', task_id=t.id), t, task_type, "Simpan Perubahan") }}
-          </div>
-        </details>
-        <form method="post" action="{{ url_for('delete_task_func', task_id=t.id) }}"
-              onsubmit="return confirm('Hapus task &quot;{{ t.task_name }}&quot;?')">
-          <button class="rounded-lg bg-red-600/80 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white transition hover:bg-red-500">
-            Hapus
-          </button>
-        </form>
-      </div>
     </div>
-    <p class="mt-2 text-sm {{ accent.streak }}">
-      {% if t.streak_current == 0 %}Belum ada streak. Selesaikan task ini hari ini untuk memulai!
-      {% elif t.streak_current == 1 %}Anda telah melakukan ini 1x berturut-turut.
-      {% else %}Anda telah melakukan ini {{ t.streak_current }}x berturut-turut.
-      {% endif %}
-      {% if t.streak_best > 1 and t.streak_best != t.streak_current %}Rekor terbaik: {{ t.streak_best }}x.{% endif %}
-    </p>
-    <details class="mt-3">
-      <summary class="cursor-pointer rounded-lg bg-white/5 px-3 py-2 text-xs font-semibold text-gray-400 transition hover:bg-white/10 hover:text-white">
-        Riwayat penyelesaian ({{ task_dates[t.id] | length }} hari)
-      </summary>
-      <div class="mt-2 flex flex-wrap gap-1">
-        {% if task_dates[t.id] %}
-          {% for d in task_dates[t.id] %}
-          <span class="rounded bg-emerald-900/60 px-2 py-0.5 text-[10px] text-emerald-300">{{ d[8:10] }}/{{ d[5:7] }}</span>
-          {% endfor %}
-        {% else %}
-          <span class="text-xs text-gray-500">Belum ada penyelesaian</span>
+  </a>
+  {% endfor %}
+  {% endif %}
+
+  {% if finished_tasks %}
+  <p class="mb-2 mt-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Selesai</p>
+  {% for t in finished_tasks %}
+  <a href="{{ url_for('task_detail', task_id=t.id) }}" class="block mb-3 rounded-xl bg-gray-900/40 p-3 sm:p-4 hover:bg-gray-900/60 transition border border-white/5">
+    <div class="flex items-start justify-between gap-3">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="text-emerald-400 text-xs">&#10003;</span>
+          <p class="font-bold truncate">{{ t.task_name }}</p>
+        </div>
+        {% if t.task_description %}
+        <p class="mt-1 text-sm text-gray-500 truncate">{{ t.task_description }}</p>
         {% endif %}
       </div>
-    </details>
-  </div>
-  {% else %}
-  <p class="py-6 text-center text-gray-500">Belum ada task. Tambahkan task baru di atas!</p>
+      <span class="shrink-0 rounded-full {{ accent.badge }} px-2 py-0.5 text-[10px] font-bold">{{ task_dates[t.id] | length }}x</span>
+    </div>
+  </a>
   {% endfor %}
+  {% endif %}
+
+  {% if not unfinished_tasks and not finished_tasks %}
+  <p class="py-6 text-center text-gray-500">Belum ada task. Tambahkan task baru di atas!</p>
+  {% endif %}
 </section>
 {% endmacro %}
 
@@ -162,21 +141,21 @@
 </div>
 
 <div class="mt-6 grid gap-6">
-  {{ render_section('Daily Task', task_list_daily, 'daily', {
+  {{ render_section('Daily Task', task_list_daily.unfinished, task_list_daily.finished, 'daily', {
       'badge': 'bg-blue-500/20 text-blue-300',
       'summary': 'text-blue-300',
       'finish': 'bg-blue-600 hover:bg-blue-500',
       'streak': 'text-blue-300'
   }) }}
 
-  {{ render_section('Weekly Task', task_list_weekly, 'weekly', {
+  {{ render_section('Weekly Task', task_list_weekly.unfinished, task_list_weekly.finished, 'weekly', {
       'badge': 'bg-violet-500/20 text-violet-300',
       'summary': 'text-violet-300',
       'finish': 'bg-violet-600 hover:bg-violet-500',
       'streak': 'text-violet-300'
   }) }}
 
-  {{ render_section('Monthly Task', task_list_monthly, 'monthly', {
+  {{ render_section('Monthly Task', task_list_monthly.unfinished, task_list_monthly.finished, 'monthly', {
       'badge': 'bg-emerald-500/20 text-emerald-300',
       'summary': 'text-emerald-300',
       'finish': 'bg-emerald-600 hover:bg-emerald-500',
