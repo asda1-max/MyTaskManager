@@ -76,9 +76,9 @@
     <p class="mb-3 font-bold text-sm sm:text-base">Grafik 30 Hari Terakhir</p>
     {% set peak = chart | map(attribute='total') | max %}
     {% set scale = peak if peak > 0 else 1 %}
-    <div class="flex h-24 sm:h-32 items-end gap-[1px] sm:gap-1">
+    <div class="flex w-full h-24 sm:h-32 items-end gap-[1px] sm:gap-1 overflow-hidden">
       {% for c in chart %}
-      <div class="group relative flex-1">
+      <div class="group relative flex-1 min-w-0">
         <div class="w-full rounded-t {% if c.total > 0 %}bg-blue-400 group-hover:bg-blue-300{% else %}bg-white/5{% endif %}"
              style="height: {{ [ (c.total / scale * 96) | round | int, 3 ] | max }}px">
         </div>
@@ -88,9 +88,9 @@
       </div>
       {% endfor %}
     </div>
-    <div class="mt-1 flex gap-[1px] sm:gap-1">
+    <div class="mt-1 flex w-full gap-[1px] sm:gap-1">
       {% for c in chart %}
-      <div class="flex-1 text-center text-[7px] sm:text-[10px] text-gray-500">
+      <div class="flex-1 min-w-0 text-center text-[7px] sm:text-[10px] text-gray-500">
         {% if loop.index0 % 5 == 0 or loop.last %}{{ c.day[8:10] }}{% endif %}
       </div>
       {% endfor %}

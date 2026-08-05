@@ -6,27 +6,27 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
     <title>{% block title %}MyTaskManager{% endblock %}</title>
   </head>
-  <body class="min-h-screen bg-gray-950 text-gray-100">
+  <body class="min-h-screen bg-gray-950 text-gray-100 overflow-x-hidden">
     <nav class="sticky top-0 z-10 border-b border-white/10 bg-gray-900/90 backdrop-blur">
       <div class="mx-auto flex h-14 sm:h-16 max-w-5xl items-center justify-between px-3 sm:px-4">
-        <a href="{{ url_for('index') }}" class="text-base sm:text-xl font-black tracking-tight whitespace-nowrap">
+        <a href="{{ url_for('index') }}" class="text-sm sm:text-xl font-black tracking-tight whitespace-nowrap">
           MyTask<span class="text-blue-400">Manager</span>
         </a>
-        <div class="flex items-center gap-0 sm:gap-1 overflow-x-auto scrollbar-none">
+        <div class="flex items-center gap-0.5 sm:gap-1">
           <a href="{{ url_for('index') }}"
-             class="rounded-md px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap {% if request.path == url_for('index') %}bg-white/10 text-white{% else %}text-gray-400 hover:bg-white/5 hover:text-white{% endif %}">
+             class="rounded-md px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap {% if request.path == url_for('index') %}bg-white/10 text-white{% else %}text-gray-400 hover:bg-white/5 hover:text-white{% endif %}">
             Dashboard
           </a>
           <a href="{{ url_for('history') }}"
-             class="rounded-md px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap {% if request.path == url_for('history') %}bg-white/10 text-white{% else %}text-gray-400 hover:bg-white/5 hover:text-white{% endif %}">
+             class="rounded-md px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap {% if request.path == url_for('history') %}bg-white/10 text-white{% else %}text-gray-400 hover:bg-white/5 hover:text-white{% endif %}">
             Riwayat
           </a>
           <a href="{{ url_for('wishlist') }}"
-             class="rounded-md px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap {% if request.path == url_for('wishlist') %}bg-white/10 text-white{% else %}text-gray-400 hover:bg-white/5 hover:text-white{% endif %}">
+             class="rounded-md px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap {% if request.path == url_for('wishlist') %}bg-white/10 text-white{% else %}text-gray-400 hover:bg-white/5 hover:text-white{% endif %}">
             Wishlist
           </a>
           <a href="{{ url_for('logout') }}"
-             class="ml-1 sm:ml-2 rounded-md bg-white/5 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap text-gray-400 hover:bg-red-600/20 hover:text-red-300">
+             class="ml-1 rounded-md bg-white/5 px-1 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium whitespace-nowrap text-gray-400 hover:bg-red-600/20 hover:text-red-300">
             Keluar
           </a>
         </div>
